@@ -900,7 +900,11 @@ pub(crate) fn handle_record(
     response: &mut HttpResponse,
 ) -> Option<Vec<u8>> {
     tracing::debug!("RECORD");
-    response.add_header("Audio-Latency", "0");
+    // AirPlay 2 interprets this as the receiver's minimum output latency.
+    // 88,200 frames equals 2 s at its 44.1 kHz clock and is the value used by
+    // genuine AirPlay receivers. Advertising 0 drops the sender-side buffer,
+    // which causes stutter and breaks multi-room sync with genuine receivers.
+    response.add_header("Audio-Latency", "88200");
     let should_apply = conn
         .ap2_remote_control
         .as_ref()
